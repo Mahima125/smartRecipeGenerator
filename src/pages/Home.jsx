@@ -1,5 +1,5 @@
 import React from 'react';
-import travel from '../assets/travel.mp4';
+import travel from '../assets/travel1.mp4';
 import Hero from '../components/Hero/Hero.jsx';
 import Places from '../components/Places/Places.jsx';
 import Picture from '../components/Picture/Picture.jsx';
