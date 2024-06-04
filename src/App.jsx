@@ -17,7 +17,6 @@ const App = () => {
      <Route path='/' element={<Layout/>}>
         <Route index element={<Home/>}/>
         <Route path="blogs" element={<Blogs />} />
-        <Route path="blogs/:id" element={<BlogsDetails />} />
         <Route path="best-places" element={<PlacesRoute />} />
         <Route path="about" element={<About />} />
         <Route path="*" element={<NoPage />} />
