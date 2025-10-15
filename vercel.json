@@ -1,1 +1,22 @@
-
+{
+  "functions": {
+    "api/scan-image.js": {
+      "runtime": "node18.x",
+      "maxDuration": 10,
+      "includeFiles": "node_modules/@google-cloud/vision/**",
+      "helpers": ["@vercel/node"],
+      "memory": 512,
+      "launcherType": "node",
+      "module": "commonjs", // <--- THIS IS THE CRITICAL FIX for 'require is not defined'
+      "environment": {
+        "GOOGLE_VISION_API_KEY": "@GCP_API_KEY" // <--- Injects your Vercel secret
+      }
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/scan-image",
+      "dest": "/api/scan-image.js"
+    }
+  ]
+}
