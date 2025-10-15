@@ -5,7 +5,7 @@ import { ImageAnnotatorClient } from '@google-cloud/vision';
 
 // FIX: Explicitly pass the API key from environment variables
 const client = new ImageAnnotatorClient({
-    key: process.env.GOOGLE_VISION_API_KEY // MUST match the Vercel key name
+    key: process.env.GCP_API_KEY // MUST match the Vercel key name
 });
 
 const INGREDIENT_KEYWORDS = ['fruit', 'vegetable', 'meat', 'herb', 'spice', 'produce', 'food', 'dairy', 'grain', 'pasta', 'rice', 'chicken', 'beef'];
