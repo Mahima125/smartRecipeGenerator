@@ -1,6 +1,6 @@
 import { HfInference } from '@huggingface/inference';
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY); // Free API key from huggingface.co
+const hf = new HfInference(process.env.HUGGING_FACE_HUB_TOKEN ); // Free API key from huggingface.co
 
 export default async (req, res) => {
     if (req.method !== 'POST') {
