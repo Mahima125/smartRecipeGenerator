@@ -1,9 +1,1 @@
-{
-  "functions": {
-    "api/scan-image.js": { 
-      "environment": {
-        "GCP_API_KEY": "@gcp_api_key" 
-      }
-    }
-  }
-}
+
