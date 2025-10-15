@@ -1,18 +1,6 @@
-// api/scan-image.js
-import { ImageAnnotatorClient } from '@google-cloud/vision';
+import { HfInference } from '@huggingface/inference';
 
-// FIXED: Use 'apiKey' instead of 'key', and correct env variable name
-const client = new ImageAnnotatorClient({
-    apiKey: process.env.GOOGLE_VISION_API_KEY  // Changed from 'key' to 'apiKey'
-});
-
-const INGREDIENT_KEYWORDS = [
-    'fruit', 'vegetable', 'meat', 'herb', 'spice', 'produce', 'food', 
-    'dairy', 'grain', 'pasta', 'rice', 'chicken', 'beef', 'fish',
-    'cheese', 'egg', 'bread', 'sauce', 'oil', 'butter', 'tomato',
-    'onion', 'garlic', 'pepper', 'carrot', 'potato', 'mushroom',
-    'lettuce', 'spinach', 'broccoli', 'corn', 'bean', 'lemon'
-];
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY); // Free API key from huggingface.co
 
 export default async (req, res) => {
     if (req.method !== 'POST') {
@@ -26,39 +14,33 @@ export default async (req, res) => {
             return res.status(400).json({ error: 'Missing image data' });
         }
 
-        console.log('Starting Vision API call...');
+        // Convert base64 to blob
+        const imageBuffer = Buffer.from(image, 'base64');
 
-        // Call Google Vision API
-        const [result] = await client.labelDetection({
-            image: { content: image },
+        // Use image classification model
+        const result = await hf.imageClassification({
+            data: imageBuffer,
+            model: 'google/vit-base-patch16-224' 
         });
 
-        const labels = result.labelAnnotations || [];
-        
-        console.log('Raw labels detected:', labels.map(l => `${l.description} (${Math.round(l.score * 100)}%)`));
-        
-        // Filter and process ingredients
-        const ingredients = labels
-            .filter(label => 
-                label.score > 0.70 && 
-                INGREDIENT_KEYWORDS.some(keyword => 
-                    label.description.toLowerCase().includes(keyword)
-                )
-            )
-            .map(label => label.description.toLowerCase().replace(/s$/, ''));
-        
-        const ingredientsString = [...new Set(ingredients)].join(', ');
+        console.log('HuggingFace results:', result);
 
-        console.log('Filtered ingredients:', ingredientsString);
+        // Extract labels
+        const ingredients = result
+            .filter(item => item.score > 0.3)
+            .map(item => item.label.toLowerCase())
+            .slice(0, 5);
+
+        const ingredientsString = ingredients.join(', ');
 
         return res.status(200).json({ 
             ingredientsString: ingredientsString || 'No ingredients detected'
         });
 
     } catch (error) {
-        console.error("Vision API Error Details:", error);
+        console.error("HuggingFace Error:", error);
         return res.status(500).json({ 
-            error: 'Image recognition failed',
+            error: 'Image classification failed',
             details: error.message 
         });
     }
