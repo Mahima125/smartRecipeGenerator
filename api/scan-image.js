@@ -1,22 +1,19 @@
-// api/scan-image.js
+// api/scan-image.js (Now using ESM syntax)
 
-// Import the Google Cloud Vision Node.js client
-const { ImageAnnotatorClient } = require('@google-cloud/vision');
+// 1. Use 'import' instead of 'require'
+import { ImageAnnotatorClient } from '@google-cloud/vision';
 
-// *** FIX: Explicitly pass the API key from environment variables ***
-// This guarantees the client finds and uses the key you defined in Vercel.
+// FIX: Explicitly pass the API key from environment variables
 const client = new ImageAnnotatorClient({
-    key: process.env.GOOGLE_VISION_API_KEY
+    key: process.env.GOOGLE_VISION_API_KEY // MUST match the Vercel key name
 });
-// ********************************************************************
 
-// Keywords to help filter out irrelevant labels
 const INGREDIENT_KEYWORDS = ['fruit', 'vegetable', 'meat', 'herb', 'spice', 'produce', 'food', 'dairy', 'grain', 'pasta', 'rice', 'chicken', 'beef'];
 
-// This is the standard export function for Vercel Serverless (Node.js)
-module.exports = async (req, res) => {
-    // 1. Basic Method Check
+// 2. Use 'export default' instead of 'module.exports'
+export default async (req, res) => {
     if (req.method !== 'POST') {
+        // Ensure error response is always JSON
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
     
@@ -27,15 +24,12 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Missing image data' });
         }
 
-        // --- Call Google Cloud Vision API ---
         const [result] = await client.labelDetection({
-            image: { content: image }, // The Base64 string from the frontend
+            image: { content: image },
         });
-        // ... (rest of the logic below is the same, handling filtering and parsing)
-        
+
         const labels = result.labelAnnotations || [];
         
-        // --- Process and Filter Results ---
         const ingredients = labels
             .filter(label => 
                 label.score > 0.70 && 
@@ -51,7 +45,6 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error("Vision API Error:", error.message);
-        // Ensure the error response is always JSON, preventing the frontend crash
-        return res.status(500).json({ error: 'Authentication Failed or Runtime Error. Check Vercel Logs.' });
+        return res.status(500).json({ error: 'Serverless Function Runtime Error. Check Vercel Logs.' });
     }
 };
