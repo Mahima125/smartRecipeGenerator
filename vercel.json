@@ -1,8 +1,6 @@
 {
   "functions": {
     "api/scan-image.js": { 
-      "memory": 1024,      
-      "maxDuration": 10,   
       "environment": {
         "GCP_API_KEY": "@gcp_api_key" 
       }
