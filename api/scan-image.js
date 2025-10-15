@@ -1,18 +1,21 @@
 // api/scan-image.js
 
-// You must install: npm install @google-cloud/vision
+// Import the Google Cloud Vision Node.js client
 const { ImageAnnotatorClient } = require('@google-cloud/vision');
 
-// The client automatically picks up the API key from the GOOGLE_APPLICATION_CREDENTIALS 
-// or other configured environment variables in Vercel.
-const client = new ImageAnnotatorClient(); 
+// *** FIX: Explicitly pass the API key from environment variables ***
+// This guarantees the client finds and uses the key you defined in Vercel.
+const client = new ImageAnnotatorClient({
+    key: process.env.GOOGLE_VISION_API_KEY 
+});
+// ********************************************************************
 
-// Simple list to help filter out labels like 'table' or 'floor'
-const INGREDIENT_KEYWORDS = ['fruit', 'vegetable', 'meat', 'herb', 'spice', 'produce', 'food', 'dairy', 'grain', 'bean', 'pasta', 'rice', 'chicken', 'beef'];
+// Keywords to help filter out irrelevant labels
+const INGREDIENT_KEYWORDS = ['fruit', 'vegetable', 'meat', 'herb', 'spice', 'produce', 'food', 'dairy', 'grain', 'pasta', 'rice', 'chicken', 'beef'];
 
-// This is the standard export format for Vercel Serverless Functions
+// This is the standard export function for Vercel Serverless (Node.js)
 module.exports = async (req, res) => {
-    // Vercel uses req/res objects similar to Express
+    // 1. Basic Method Check
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -26,25 +29,20 @@ module.exports = async (req, res) => {
 
         // --- Call Google Cloud Vision API ---
         const [result] = await client.labelDetection({
-            image: { content: image }, // The base64 string
+            image: { content: image }, // The Base64 string from the frontend
         });
-
+        // ... (rest of the logic below is the same, handling filtering and parsing)
+        
         const labels = result.labelAnnotations || [];
         
         // --- Process and Filter Results ---
         const ingredients = labels
             .filter(label => 
-                // 1. Filter out labels with low confidence
                 label.score > 0.70 && 
-                // 2. Filter out irrelevant general objects
-                INGREDIENT_KEYWORDS.some(keyword => label.description.toLowerCase().includes(keyword) || 
-                                                     label.description.toLowerCase().endsWith('s') && 
-                                                     INGREDIENT_KEYWORDS.some(k => k === label.description.toLowerCase().slice(0, -1)))
+                INGREDIENT_KEYWORDS.some(keyword => label.description.toLowerCase().includes(keyword))
             )
-            // 3. Get the description and convert to lowercase for matching
-            .map(label => label.description.toLowerCase().replace(/s$/, '')); // Simple plural removal
+            .map(label => label.description.toLowerCase().replace(/s$/, '')); 
         
-        // 4. Create a unique, comma-separated string
         const ingredientsString = [...new Set(ingredients)].join(', ');
 
         return res.status(200).json({ 
@@ -53,7 +51,7 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error("Vision API Error:", error.message);
-        // Do not expose sensitive error details
-        return res.status(500).json({ error: 'Failed to process image recognition. Check Serverless logs.' });
+        // Ensure the error response is always JSON, preventing the frontend crash
+        return res.status(500).json({ error: 'Authentication Failed or Runtime Error. Check Vercel Logs.' });
     }
 };
