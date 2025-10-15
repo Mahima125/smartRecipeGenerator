@@ -6,7 +6,7 @@ const { ImageAnnotatorClient } = require('@google-cloud/vision');
 // *** FIX: Explicitly pass the API key from environment variables ***
 // This guarantees the client finds and uses the key you defined in Vercel.
 const client = new ImageAnnotatorClient({
-    key: process.env.GOOGLE_VISION_API_KEY 
+    key: process.env.GOOGLE_VISION_API_KEY
 });
 // ********************************************************************
 
